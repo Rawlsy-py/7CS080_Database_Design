@@ -1,0 +1,197 @@
+/* We will be creating an Oracle Database using Oracle 19c.
+This database will be for a hotel and use relationships between tables to store data.
+We will be using the following tables:
+1. Guests containing (guest_id, first_name, last_name, email, phone_number)
+2. Reservation Agents (agent_id, first_name, last_name, email, phone_number)
+3. Bookings (booking_id, guest_id, agent_id, room_number, check_in_date, check_out_date)
+4. Payment (payment_id, booking_id, payment_type, payment_amount)
+5. Rooms (room_id, booking_id, room_number, room_rate_id)
+6. Room Rates (room_rate_id, room_type_id, room_rate)
+7. Room Types (room_type_id, room_type)
+
+We will be using the following relationships:
+1. One to Many: Guests to Bookings
+2. One to Many: Reservation Agents to Bookings
+3. One to One: Bookings to Payment
+4. One to One: Bookings to Rooms
+5. One to Many: Rooms to Room Rates
+6. One to Many: Room Rates to Room Types
+*/
+
+-- Drop the database if it already exists
+DROP DATABASE IF EXISTS hotel_3;
+
+-- create database
+CREATE DATABASE hotel;
+
+-- create tables per ER diagram
+CREATE TABLE guests_two (
+    guest_id NUMBER(10) NOT NULL,
+    first_name VARCHAR2(50) NOT NULL,
+    last_name VARCHAR2(50) NOT NULL,
+    email VARCHAR2(50) NOT NULL,
+    phone_number VARCHAR2(50) NOT NULL,
+    CONSTRAINT guests_pk PRIMARY KEY (guest_id)
+);
+
+CREATE TABLE reservation_agents_two (
+    reservation_agent_id NUMBER(10) NOT NULL,
+    first_name VARCHAR2(50) NOT NULL,
+    last_name VARCHAR2(50) NOT NULL,
+    email VARCHAR2(50) NOT NULL,
+    phone_number VARCHAR2(50) NOT NULL,
+    CONSTRAINT reservation_agents_pk PRIMARY KEY (reservation_agent_id)
+);
+
+CREATE TABLE bookings_two (
+    booking_id NUMBER(10) NOT NULL,
+    guest_id NUMBER(10) NOT NULL,
+    reservation_agent_id NUMBER(10) NOT NULL,
+    check_in_date DATE NOT NULL,
+    check_out_date DATE NOT NULL,
+    CONSTRAINT bookings_pk PRIMARY KEY (booking_id),
+    CONSTRAINT bookings_guests_fk FOREIGN KEY (guest_id) REFERENCES guests_two (guest_id),
+    CONSTRAINT bookings_reservation_agents_fk FOREIGN KEY (reservation_agent_id) REFERENCES reservation_agents_two (reservation_agent_id)
+);
+
+CREATE TABLE payment_two (
+    payment_id NUMBER(10) NOT NULL,
+    booking_id NUMBER(10) NOT NULL,
+    payment_amount NUMBER(10,2) NOT NULL,
+    payment_date DATE NOT NULL,
+    CONSTRAINT payment_pk PRIMARY KEY (payment_id),
+    CONSTRAINT payment_bookings_fk FOREIGN KEY (booking_id) REFERENCES bookings_two (booking_id)
+);
+
+CREATE TABLE room_types_two (
+    room_type_id NUMBER(10) NOT NULL,
+    room_type VARCHAR2(50) NOT NULL,
+    CONSTRAINT room_types_pk PRIMARY KEY (room_type_id)
+);
+
+CREATE TABLE room_rates_two (
+    room_rate_id NUMBER(10) NOT NULL,
+    room_type_id NUMBER(10) NOT NULL,
+    room_rate NUMBER(10,2) NOT NULL,
+    CONSTRAINT room_rates_pk PRIMARY KEY (room_rate_id),
+    CONSTRAINT room_rates_room_types_fk FOREIGN KEY (room_type_id) REFERENCES room_types_two (room_type_id)
+);
+
+CREATE TABLE rooms_two (
+    room_id NUMBER(10) NOT NULL,
+    booking_id NUMBER(10) NOT NULL,
+    room_number NUMBER(10) NOT NULL,
+    room_rate_id NUMBER(10) NOT NULL,
+    CONSTRAINT rooms_pk PRIMARY KEY (room_id),
+    CONSTRAINT rooms_bookings_fk FOREIGN KEY (booking_id) REFERENCES bookings_two (booking_id),
+    CONSTRAINT rooms_room_rates_fk FOREIGN KEY (room_rate_id) REFERENCES room_rates_two (room_rate_id)
+);
+
+
+
+-- create relationships
+ALTER TABLE bookings ADD CONSTRAINT bookings_payment_fk FOREIGN KEY (booking_id) REFERENCES payment_two (booking_id);
+ALTER TABLE bookings ADD CONSTRAINT bookings_rooms_fk FOREIGN KEY (booking_id) REFERENCES rooms_two (booking_id);
+
+-- insert data into tables (uk phone numbers, uk email addresses, and dates are used for testing purposes)
+INSERT INTO guests_two VALUES (1, 'John', 'Smith', 'john.smith@example.com', '07123456789');
+INSERT INTO guests_two VALUES (2, 'Jane', 'Doe', 'jane.doe@example.com', '07123456787');
+INSERT INTO guests_two VALUES (3, 'James', 'Bond', 'james.bond@imaspy.com', '07123456786');
+INSERT INTO guests_two VALUES (4, 'James', 'May', 'james.may@crashmycar.com', '07123456785');
+INSERT INTO guests_two VALUES (5, 'Jeremy', 'Clarkson', 'angryfarmer@farming.com', '07123456784');
+
+INSERT INTO reservation_agents_two VALUES (1, 'Jackie', 'Chan', 'jackie.chan@ahotelemail.com', '01234567892');
+INSERT INTO reservation_agents_two VALUES (2, 'Bruce', 'Lee', 'bruce.lee@ahotelemail.com', '01234567892');
+INSERT INTO reservation_agents_two VALUES (3, 'Chuck', 'Norris', 'chuck.norris@ahotelemail.com', '01234567892');
+
+INSERT INTO bookings_two VALUES (1, 1, 1, '01-JAN-2020', '02-JAN-2020');
+INSERT INTO bookings_two VALUES (2, 2, 2, '01-JAN-2020', '02-JAN-2020');
+INSERT INTO bookings_two VALUES (3, 3, 3, '05-JAN-2020', '09-JAN-2020');
+INSERT INTO bookings_two VALUES (4, 4, 1, '22-JAN-2020', '02-FEB-2020');
+INSERT INTO bookings_two VALUES (5, 5, 2, '01-FEB-2020', '02-FEB-2020');
+
+INSERT INTO payment_two VALUES (1, 1, 100.00, '01-JAN-2020');
+INSERT INTO payment_two VALUES (2, 2, 200.00, '01-JAN-2020');
+INSERT INTO payment_two VALUES (3, 3, 300.00, '05-JAN-2020');
+INSERT INTO payment_two VALUES (4, 4, 400.00, '22-JAN-2020');
+INSERT INTO payment_two VALUES (5, 5, 500.00, '01-FEB-2020');
+
+INSERT INTO rooms_two VALUES (1, 1, 1, 1);
+INSERT INTO rooms_two VALUES (2, 2, 2, 2);
+INSERT INTO rooms_two VALUES (3, 3, 3, 1);
+INSERT INTO rooms_two VALUES (4, 4, 4, 1);
+INSERT INTO rooms_two VALUES (5, 5, 5, 3);
+
+INSERT INTO room_rates_two VALUES (1, 1, 100.00);
+INSERT INTO room_rates_two VALUES (2, 2, 200.00);
+INSERT INTO room_rates_two VALUES (3, 3, 300.00);
+INSERT INTO room_rates_two VALUES (4, 4, 500.00);
+
+INSERT INTO room_types_two VALUES (1, 'Single');
+INSERT INTO room_types_two VALUES (2, 'Double');
+INSERT INTO room_types_two VALUES (3, 'Family');
+INSERT INTO room_types_two VALUES (4, 'Suite');
+
+-- show list of guests and their payment dates
+SELECT g.first_name, g.last_name, p.payment_date
+FROM guests_two g
+INNER JOIN bookings_two b ON g.guest_id = b.guest_id
+INNER JOIN payment_two p ON b.booking_id = p.booking_id;
+
+SELECT * FROM reservation_agents_two;
+
+SELECT * FROM guests_two;
+
+SELECT * FROM bookings_two;
+
+SELECT * FROM payment_two;
+
+SELECT * FROM rooms_two;
+
+SELECT * FROM room_rates_two;
+
+SELECT * FROM room_types_two;
+
+-- end of script
+
+
+/* DANGER ZONE - DO NOT RUN THIS CODE UNLESS YOU WANT TO DELETE THE DATABASE AND START AGAIN */
+-- run oracle database delete script
+-- delete script
+
+-- delete data from tables
+DELETE FROM guests;
+DELETE FROM reservation_agents;
+DELETE FROM bookings;
+DELETE FROM payment;
+DELETE FROM rooms;
+DELETE FROM room_rates;
+DELETE FROM room_types;
+
+DELETE FROM guests_two;
+DELETE FROM reservation_agents_two;
+DELETE FROM bookings_two;
+DELETE FROM payment_two;
+DELETE FROM rooms_two;
+DELETE FROM room_rates_two;
+DELETE FROM room_types_two;
+
+-- delete tables
+DROP TABLE guests;
+DROP TABLE reservation_agents;
+DROP TABLE bookings;
+DROP TABLE payment;
+DROP TABLE rooms;
+DROP TABLE room_rates;
+DROP TABLE room_types;
+
+DROP TABLE guests_two;
+DROP TABLE reservation_agents_two;
+DROP TABLE bookings_two;
+DROP TABLE payment_two;
+DROP TABLE rooms_two;
+DROP TABLE room_rates_two;
+DROP TABLE room_types_two;
+
+-- drop database
+DROP DATABASE hotel;
